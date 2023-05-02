@@ -1,6 +1,6 @@
 const express = require('express')
 const exphbs = require('express-handlebars')
-const restaurantList = require('./restaurant.json')
+const restaurantList = require('./models/restaurants')
 const mongoose = require('mongoose')
 
 // 僅非正式環境使用dotenv
@@ -9,7 +9,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // 建立連線
-mongoose.connect(process.env.MONGO_URI,{ useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGODB_URI,{ useNewUrlParser: true, useUnifiedTopology: true })
 const db = mongoose.connection
 db.on('error', () => {
   console.log('mongodb error!')
@@ -28,9 +28,13 @@ app.set('view engine', 'handlebars')
 // setting static files
 app.use(express.static('public'))
 
+
 // routes setting...
 app.get('/', (req, res) => {
-  res.render('index', { restaurants: restaurantList.results })
+  restaurantList.find()
+    .lean()
+    .then(restaurants => res.render('index', { restaurants }))
+    .catch(error => console.log(error))
 })
 
 app.get('/restaurants/:restaurants_id', (req, res) => {
