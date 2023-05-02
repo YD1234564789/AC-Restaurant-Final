@@ -48,12 +48,13 @@ app.post('/restaurants', (req, res) => {
     .catch(err => console.log(err))
 })
 
-
-app.get('/restaurants/:restaurants_id', (req, res) => {
-  const restaurant = restaurantList.results.find(function(restaurant) {
-    return restaurant.id.toString() === req.params.restaurants_id
-  })
-  res.render('show', { restaurant: restaurant })
+//瀏覽詳細資料
+app.get('/restaurants/:id', (req, res) => {
+  const id = req.params.id
+  return restaurantList.findById(id)
+    .lean()
+    .then(restaurant => res.render('show', {restaurant}))
+    .catch(error => console.log(error))
 })
 
 app.get('/search', (req, res) => {
