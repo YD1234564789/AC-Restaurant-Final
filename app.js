@@ -3,6 +3,11 @@ const exphbs = require('express-handlebars')
 const restaurantList = require('./models/restaurants')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
+const methodOverride = require('method-override')
+
+const port = 3000
+const app = express()
+
 // 僅非正式環境使用dotenv
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
@@ -18,8 +23,6 @@ db.once('open', () => {
   console.log('mongodb connected!')
 })
 
-const port = 3000
-const app = express()
 
 // express template engine
 app.engine('handlebars', exphbs({ defaultLayout: 'main' }))
@@ -28,6 +31,8 @@ app.set('view engine', 'handlebars')
 // setting static files
 app.use(express.static('public'))
 app.use(bodyParser.urlencoded({ extended: true }))
+app.use(methodOverride('_method'))
+
 
 // routes setting...
 app.get('/', (req, res) => {
@@ -37,24 +42,40 @@ app.get('/', (req, res) => {
     .catch(error => console.log(error))
 })
 
-//新增
+// 新增
 app.get('/restaurants/new', (req, res) => {
   res.render('new')
 })
-//接收新增的表單
+// 接收新增的表單
 app.post('/restaurants', (req, res) => {
   restaurantList.create(req.body) 
     .then(() => res.redirect('/'))
     .catch(err => console.log(err))
 })
 
-//瀏覽詳細資料
+// 瀏覽詳細資料
 app.get('/restaurants/:id', (req, res) => {
   const id = req.params.id
   return restaurantList.findById(id)
     .lean()
     .then(restaurant => res.render('show', {restaurant}))
     .catch(error => console.log(error))
+})
+
+// 修改資料
+app.get('/restaurants/:id/edit', (req, res) => {
+  const id = req.params.id
+  restaurantList.findById(id)
+    .lean()
+    .then(restaurant => res.render('edit', {restaurant}))
+    .catch(error => console.log(error))
+})
+// 更新資料
+app.put('/restaurants/:id', (req, res) => {
+  const id = req.params.id
+  restaurantList.findByIdAndUpdate(id, req.body)
+    .then(() => res.redirect(`/restaurants/${id}`))
+    .catch(err => console.log(err))
 })
 
 app.get('/search', (req, res) => {
