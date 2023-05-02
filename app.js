@@ -2,7 +2,7 @@ const express = require('express')
 const exphbs = require('express-handlebars')
 const restaurantList = require('./models/restaurants')
 const mongoose = require('mongoose')
-
+const bodyParser = require('body-parser')
 // 僅非正式環境使用dotenv
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
@@ -27,7 +27,7 @@ app.set('view engine', 'handlebars')
 
 // setting static files
 app.use(express.static('public'))
-
+app.use(bodyParser.urlencoded({ extended: true }))
 
 // routes setting...
 app.get('/', (req, res) => {
@@ -36,6 +36,18 @@ app.get('/', (req, res) => {
     .then(restaurants => res.render('index', { restaurants }))
     .catch(error => console.log(error))
 })
+
+//新增
+app.get('/restaurants/new', (req, res) => {
+  res.render('new')
+})
+//接收新增的表單
+app.post('/restaurants', (req, res) => {
+  restaurantList.create(req.body) 
+    .then(() => res.redirect('/'))
+    .catch(err => console.log(err))
+})
+
 
 app.get('/restaurants/:restaurants_id', (req, res) => {
   const restaurant = restaurantList.results.find(function(restaurant) {
