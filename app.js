@@ -77,14 +77,34 @@ app.put('/restaurants/:id', (req, res) => {
     .then(() => res.redirect(`/restaurants/${id}`))
     .catch(err => console.log(err))
 })
+// 刪除資料
+app.delete('/restaurants/:id', (req, res) => {
+  const id = req.params.id
+  restaurantList.findByIdAndDelete(id)
+    .then(() => res.redirect('/'))
+    .catch(err => console.log(err))
+})
+
 
 app.get('/search', (req, res) => {
-  const keyword = req.query.keyword
-  const restaurants = restaurantList.results.filter((restaurant) => {
-    return restaurant.name.toLowerCase().includes(req.query.keyword.toLowerCase()) ||
-      restaurant.category.includes(keyword)
-  })
-  res.render('index', { keyword: keyword, restaurants: restaurants })
+  const keywords = req.query.keywords
+  const keyword = keywords.trim().toLowerCase()
+
+  if (!keywords) {
+    return res.redirect('/')
+  }
+
+  restaurantList.find({})
+    .lean()
+    .then(restaurantList =>  {
+      const filterRestaurantsList = restaurantList.filter(
+        data =>
+          data.name.toLowerCase().includes(keyword) ||
+          data.category.includes(keyword)
+      )
+      res.render('index', { restaurants: filterRestaurantsList, keywords })
+    })
+    .catch(err => console.log(err))
 })
 
 // start and listen on the Express server
