@@ -7,10 +7,6 @@ require('./config/mongoose')
 const port = 3000
 const app = express()
 
-// 僅非正式環境使用dotenv
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config()
-}
 
 // express template engine
 app.engine('handlebars', exphbs({ defaultLayout: 'main' }))
