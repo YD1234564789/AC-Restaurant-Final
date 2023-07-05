@@ -6,11 +6,17 @@ const routes = require('./routes')
 require('./config/mongoose')
 const port = 3000
 const app = express()
-
+const session = require('express-session')
 
 // express template engine
 app.engine('handlebars', exphbs({ defaultLayout: 'main' }))
 app.set('view engine', 'handlebars')
+
+app.use(session({
+  secret: 'ThisIsMySecret',
+  resave: false,
+  saveUninitialized: true
+}))
 
 // setting static files
 app.use(express.static('public'))
