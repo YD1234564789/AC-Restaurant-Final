@@ -16,7 +16,8 @@ let sort = sortType[0]
 router.use(bodyParser.urlencoded({ extended: true }))
 
 router.get('/', (req, res) => {
-  restaurantList.find()
+  const userId = req.user._id
+  restaurantList.find({ userId })
     .lean()
     .sort(sort)
     .then(restaurants => res.render('index', { restaurants }))

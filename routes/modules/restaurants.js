@@ -8,15 +8,18 @@ router.get('/new', (req, res) => {
 })
 // 接收新增的表單
 router.post('/', (req, res) => {
-  restaurantList.create(req.body)
+  const userId = req.user._id
+  const { name, name_en, category, image, location, phone, google_map, rating, description } = req.body
+  restaurantList.create({ name, name_en, category, image, location, phone, google_map, rating, description, userId })
     .then(() => res.redirect('/'))
     .catch(err => console.log(err))
 })
 
 // 瀏覽詳細資料
 router.get('/:id', (req, res) => {
-  const id = req.params.id
-  return restaurantList.findById(id)
+  const userId = req.user._id
+  const _id = req.params.id
+  return restaurantList.findOne({ _id, userId})
     .lean()
     .then(restaurant => res.render('show', { restaurant }))
     .catch(error => console.log(error))
@@ -24,23 +27,43 @@ router.get('/:id', (req, res) => {
 
 // 修改資料
 router.get('/:id/edit', (req, res) => {
-  const id = req.params.id
-  restaurantList.findById(id)
+  const userId = req.user._id
+  const _id = req.params.id
+  restaurantList.findOne({ _id, userId })
     .lean()
     .then(restaurant => res.render('edit', { restaurant }))
     .catch(error => console.log(error))
 })
 // 更新資料
 router.put('/:id', (req, res) => {
-  const id = req.params.id
-  restaurantList.findByIdAndUpdate(id, req.body)
-    .then(() => res.redirect(`/restaurants/${id}`))
+  const userId = req.user._id
+  const _id = req.params.id
+  const { name, name_en, category, image, location, phone, google_map, rating, description } = req.body
+  return restaurantList.findOneAndUpdate(
+    { _id, userId },
+     {
+      $set: { 
+      name,
+      name_en,
+      category,
+      image,
+      location,
+      phone,
+      google_map,
+      rating,
+      description 
+      }
+    },
+    { new: true}
+  )
+    .then(() => res.redirect(`/restaurants/${_id}`))
     .catch(err => console.log(err))
 })
 // 刪除資料
 router.delete('/:id', (req, res) => {
-  const id = req.params.id
-  restaurantList.findByIdAndDelete(id)
+  const userId = req.user._id
+  const _id = req.params.id
+  restaurantList.findByIdAndDelete(_id)
     .then(() => res.redirect('/'))
     .catch(err => console.log(err))
 })
