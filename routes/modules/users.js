@@ -35,6 +35,7 @@ router.post('/register', (req, res) => {
       confirmPassword
     })
   }
+  
   User.findOne({ email })
     .then(user => {
       if(user) {

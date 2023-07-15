@@ -3,53 +3,114 @@ const restaurantList = require('../../restaurant.json').results
 const db = require('../../config/mongoose')
 const bcrypt = require('bcryptjs')
 const User = require('../user')
-const SEED_USER = {
+const SEED_USER = [
+  {
+  name: 'admin1',
+  email: 'user1@example.com',
+  password: '12345678',
+  startIndex: 0,
+  endIndex: 3
+  },
+  {
   name: 'admin',
-  email: 'admin@admin.com',
-  password: 'admin'
-}
+  email: 'user2@example.com',
+  password: '12345678',
+  startIndex: 3,
+  endIndex: 6
+  }
+]
 
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config()
 }
 
 db.once('open', () => {
-  bcrypt
-    .genSalt(10)
-    .then(salt => bcrypt.hash(SEED_USER.password, salt))
-    .then(hash => User.create({
-      name: SEED_USER.name,
-      email: SEED_USER.email,
-      password: hash
-    }))
-    .then(user => {
-      const userId = user._id
-      return Promise.all(restaurantList.map(restaurant => Restaurant.create({ 
-        name: restaurant.name,
-        name_en: restaurant.name_en,
-        category: restaurant.category,
-        image: restaurant.image,
-        location: restaurant.location,
-        phone: restaurant.phone,
-        google_map: restaurant.google_map,
-        rating: restaurant.rating,
-        description: restaurant.description,
-        userId
-      })))
+  Promise.all(
+    SEED_USER.map(seedUser => {
+      return bcrypt
+        .genSalt(10)
+        .then(salt => bcrypt.hash(seedUser.password, salt))
+        .then(hash => User.create({
+          name: seedUser.name,
+          email: seedUser.email,
+          password: hash
+      }))
+      .then(user => {
+        const userId = user._id
+        // 切出用戶分配到的餐廳資料
+        const userRestaurants = restaurantList.slice(seedUser.startIndex, seedUser.endIndex)
+        // 再用切好的部分去create餐廳
+        return Promise.all(userRestaurants.map(restaurant => Restaurant.create({
+          name: restaurant.name,
+          name_en: restaurant.name_en,
+          category: restaurant.category,
+          image: restaurant.image,
+          location: restaurant.location,
+          phone: restaurant.phone,
+          google_map: restaurant.google_map,
+          rating: restaurant.rating,
+          description: restaurant.description,
+          userId
+        })))
+      })
+      .then(() => {
+        console.log('done!')
+        process.exit()
+      })
     })
-    .then(() => {
-      console.log('done!')
-      process.exit()
-    })
+  )
 })
 
 
-
-// 連線成功 用once因為連線成功只會一次 之後就會拿掉
 // db.once('open', () => {
-//   console.log('mongodb connected!')
-//   Restaurant.create(restaurantList)
-//     .then(console.log('restaurantSeeder success!'))
-//     .catch((error) => console.log(error))
-// })
+//   Promise.all(
+//     SEED_USERS.map(seedUser => {
+//       return bcrypt
+//         .genSalt(10)
+//         .then(salt => bcrypt.hash(seedUser.password, salt))
+//         .then(hash => User.create({
+//           name: seedUser.name,
+//           email: seedUser.email,
+//           password: hash
+//         }))
+//         .then(user => {
+//           console.log(`Created user: ${user.name}`);
+//           const userId = user._id;
 
+//           const userRestaurants = restaurantList.results.slice(seedUser.startIndex, seedUser.endIndex);
+
+//           return Promise.all(
+//             userRestaurants.map(restaurant => {
+//               const {
+//                 name,
+//                 name_en,
+//                 category,
+//                 image,
+//                 location,
+//                 phone,
+//                 google_map,
+//                 rating,
+//                 description
+//               } = restaurant;
+
+//               return Restaurant.create({
+//                 name,
+//                 name_en,
+//                 category,
+//                 image,
+//                 location,
+//                 phone,
+//                 google_map,
+//                 rating,
+//                 description,
+//                 userId
+//               });
+//             })
+//           );
+//         })
+//         .then(() => {
+//           console.log(`Added restaurants for user: ${seedUser.name}`);
+//         });
+//     })
+//   )
+// });
