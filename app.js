@@ -7,16 +7,19 @@ const routes = require('./routes')
 const session = require('express-session')
 const usePassport = require('./config/passport')
 require('./config/mongoose')
-const port = 3000
+const port = process.env.PORT || 3000
 const app = express()
 
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config()
+}
 
 // express template engine
 app.engine('handlebars', exphbs({ defaultLayout: 'main' }))
 app.set('view engine', 'handlebars')
 
 app.use(session({
-  secret: 'ThisIsMySecret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true
 }))
