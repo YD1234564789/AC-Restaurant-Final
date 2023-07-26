@@ -30,7 +30,7 @@ $ git clone https://github.com/YD1234564789/AC-Restaurant-Final.git
 ```
 進入此專案資料夾
 ```
-$ cd restaurant
+$ cd AC-Restaurant-Final
 ```
 輸入以下指令以安裝 npm 套件
 ```
